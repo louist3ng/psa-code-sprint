@@ -1,0 +1,26 @@
+{
+    "arrival_accuracy": {
+        "value": 69.7,
+        "delta": -2.0,
+        "unit": "%",
+        "window": "WoW"
+    },
+    "within_4h": {
+        "value": 69.7,
+        "delta": -1.5,
+        "unit": "%",
+        "window": "WoW"
+    },
+    "carbon_tonnes": {
+        "value": 58.13,
+        "delta": 1.28,
+        "unit": "t",
+        "window": "MTD"
+    },
+    "avg_berth_h": {
+        "value": 37.45,
+        "delta": 0.6,
+        "unit": "h",
+        "window": "WoW"
+    }
+}
