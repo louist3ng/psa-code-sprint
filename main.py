@@ -33,7 +33,7 @@ st.sidebar.caption(
 # ---------- title ----------
 st.markdown(
     "<h1 style='margin-bottom:0'>HarborGuide — PSA Insights Assistant</h1>"
-    "<div style='color:#4b5563;margin:6px 0 18px'>Analytical dashboard with a conversational interface</div>",
+    "<div style='color:#4b5563;margin:6px 0 18px'>AI-powered conversational interface that interprets the dashboard and delivers actionable insights</div>",
     unsafe_allow_html=True,
 )
 
