@@ -24,8 +24,23 @@ app.use('/css', express.static('./node_modules/bootstrap/dist/css/')); // Redire
 app.use('/public', express.static('./public/')); // Use custom JS and CSS files
 app.use(require("cors")({ origin: true })); // Enable CORS for local Streamlit app
 app.use(bodyParser.json({ limit: "10mb" }));
+app.use(cors({
+    origin: (origin, cb) => {
+        if (!origin || ALLOWED_ORIGINS.includes(origin)) return cb(null, true);
+        return cb(new Error(`CORS blocked: ${origin}`));
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
 
 const port = process.env.PORT || 5300;
+
+const ALLOWED_ORIGINS = [
+    process.env.FRONTEND_ORIGIN,   // your Streamlit domain
+    "http://localhost:8501",       // dev
+    "http://127.0.0.1:8501"
+].filter(Boolean);
 
 const DATA_XLSX_PATH = process.env.DATA_XLSX_PATH
     ? path.resolve(process.env.DATA_XLSX_PATH)
@@ -36,6 +51,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({
     extended: true
 }));
+
+app.get("/healthz", (_req, res) => res.json({ ok: true }));
+
 
 app.get('/', function (req, res) {
     res.sendFile(path.join(__dirname + '/../views/index.html'));
@@ -125,4 +143,5 @@ app.post("/api/ask", async (req, res) => {
     }
 });
 
-app.listen(port, () => console.log(`Listening on port ${port}`));
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => console.log(`API listening on :${PORT}`));
