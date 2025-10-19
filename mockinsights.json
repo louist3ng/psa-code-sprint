@@ -1,3 +1,3 @@
 {
-    "answer": "## Executive Summary\n- Arrival accuracy is 69.7% (−2pp WoW), with variance concentrated in APAC.\n- % within 4h target is 69.7% (−1.5pp WoW).\n- Carbon abatement totals 58.13 t (+1.28 t MTD).\n- Avg berth time is 37.45 h (+0.6 h WoW).\n\n## Drivers/Anomalies (Hypotheses)\n- Bunching from two late callers; weather windows reduced efficiency.\n- Yard–quay dispatch mismatches during peak hours.\n\n## Next Steps\n- **Visibility (Ops Lead, today):** Share ETA variance watchlist with terminals.\n- **Agility (Network Ctrl, this week):** Pre-commit flexible berth swaps for top 5 variance vessels.\n- **Sustainability (Yard Ops, ongoing):** Keep eco-dispatch profiles active on night shifts."
+    "answer": "ERROR, openai api not found"
 }
