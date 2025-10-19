@@ -40,15 +40,6 @@ def fetch_kpis(backend_url: str):
     return r.json()  # { kpis: {...}, topVessels: [...] }
 
 
-def health(backend_url: str) -> bool:
-    try:
-        r = requests.get(f"{backend_url.rstrip('/')}/health", timeout=5)
-        return r.ok and r.json().get("ok") is True
-    except Exception:
-        return False
-
-
-
 # ---------- sidebar ----------
 st.sidebar.title("⚙️ Config")
 
@@ -57,13 +48,6 @@ backend_url = st.sidebar.text_input(
     "Backend URL", value="http://localhost:5300"
 ).strip()
 
-# Health check
-ok = health(backend_url)
-
-if ok:
-    st.sidebar.success("Backend connected")
-else:
-    st.sidebar.error("Backend unreachable — using local mock data")
 
 st.sidebar.markdown("---")
 st.sidebar.caption(
@@ -92,16 +76,18 @@ with left:
         cfg = resp.json()
 
         # Backend shape: { accessToken, embedUrl: [ { id, embedUrl, ... } ], ... }
-        reports = cfg.get("embedUrl") or []                      # it's an array
-        first   = reports[0] if isinstance(reports, list) and reports else {}
+        reports = cfg.get("embedUrl") or []  # it's an array
+        first = reports[0] if isinstance(reports, list) and reports else {}
 
-        embed_url    = first.get("embedUrl", "")
+        embed_url = first.get("embedUrl", "")
         access_token = cfg.get("accessToken", "")
 
         # Guard missing fields (frontend-only, no backend change)
-        missing = [k for k, v in {
-            "embedUrl": embed_url, "accessToken": access_token
-        }.items() if not v]
+        missing = [
+            k
+            for k, v in {"embedUrl": embed_url, "accessToken": access_token}.items()
+            if not v
+        ]
         if missing:
             st.error(f"Backend missing fields: {', '.join(missing)}")
             st.stop()
@@ -111,7 +97,7 @@ with left:
             "type": "report",
             "embedUrl": embed_url,
             "accessToken": access_token,
-            "settings": {"panes": {"filters": {"visible": False}}}
+            "settings": {"panes": {"filters": {"visible": False}}},
         }
         config_json = json.dumps(safe_config)
 
@@ -137,37 +123,36 @@ with left:
     except Exception as e:
         st.info(f"Power BI embed not available: {e}")
 
-
     with right:
         st.subheader("Conversational Insights")
         st.caption(
             "Try: *What changed this week?*, *Why did arrival accuracy drop?*, *Suggest next steps aligned to PSA strategy.*"
         )
 
+        # Ensure state exists
         if "messages" not in st.session_state:
             st.session_state.messages = []
 
-        # input
+        # Input
         user_q = st.chat_input("Ask about the dashboard…")
 
         if user_q:
             st.session_state.messages.append({"role": "user", "content": user_q})
             try:
-                if ok:
-                    r = requests.post(f"{backend_url.rstrip('/')}/api/ask",
-                                    json={"question": user_q}, timeout=40)
-                    r.raise_for_status()
-                    answer = r.json().get("answer", "No answer.")
-                else:
-                    mock = load_json("mockinsights.json", {})
-                    answer = mock.get("answer", "No mock answer available.")
+                r = requests.post(f"{backend_url.rstrip('/')}/api/ask",
+                                json={"question": user_q}, timeout=60)
+                # don't raise_for_status; show diagnostics if backend returns them
+                data = r.json() if r.headers.get("content-type","").startswith("application/json") else {}
+                answer = data.get("answer", r.text or "No answer.")
             except Exception as e:
-                answer = f"Backend error: {e}\n\nTry refresh KPIs or switch to Mock."
+                answer = f"Backend error: {e}"
             st.session_state.messages.append({"role": "assistant", "content": answer})
-
-        # Now render everything once (oldest →   newest)
+            
+        # Render chat (oldest → newest)
         for m in reversed(st.session_state.messages):
             with st.chat_message(m["role"]):
                 st.markdown(m["content"])
 
-        st.button("Clear chat", on_click=lambda: st.session_state.update({"messages": []}))
+        st.button(
+            "Clear chat", on_click=lambda: st.session_state.update({"messages": []})
+        )
