@@ -22,7 +22,8 @@
         "jquery": "^3.5.1",
         "node-fetch": "^2.6.1",
         "path": "^0.12.7",
-        "powerbi-client": "^2.16.5"
+        "powerbi-client": "^2.16.5",
+        "xlsx": "^0.18.5"
     },
     "devDependencies": {
         "nodemon": "^2.0.2"

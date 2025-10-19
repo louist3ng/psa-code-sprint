@@ -17,23 +17,23 @@ const getAccessToken = async function () {
         }
     };
 
-    // Check for the MasterUser Authentication
-    if (config.authenticationMode.toLowerCase() === "masteruser") {
-        const clientApplication = new msal.PublicClientApplication(msalConfig);
+    // // Check for the MasterUser Authentication
+    // if (config.authenticationMode.toLowerCase() === "masteruser") {
+    //     const clientApplication = new msal.PublicClientApplication(msalConfig);
 
-        const usernamePasswordRequest = {
-            scopes: [config.scopeBase],
-            username: config.pbiUsername,
-            password: config.pbiPassword
-        };
+    //     const usernamePasswordRequest = {
+    //         scopes: [config.scopeBase],
+    //         username: config.pbiUsername,
+    //         password: config.pbiPassword
+    //     };
 
-        return clientApplication.acquireTokenByUsernamePassword(usernamePasswordRequest);
+    //     return clientApplication.acquireTokenByUsernamePassword(usernamePasswordRequest);
 
-    };
+    // };
 
     // Service Principal auth is the recommended by Microsoft to achieve App Owns Data Power BI embedding
     if (config.authenticationMode.toLowerCase() === "serviceprincipal") {
-        msalConfig.auth.clientSecret =  config.clientSecret
+        msalConfig.auth.clientSecret = config.clientSecret
         const clientApplication = new msal.ConfidentialClientApplication(msalConfig);
 
         const clientCredentialRequest = {
