@@ -1,7 +1,6 @@
-import os, json, time
+import json 
 import streamlit as st
 import requests
-import pandas as pd
 
 st.set_page_config(
     page_title="HarborGuide — PSA Insights Assistant", page_icon="🛳️", layout="wide"
@@ -15,30 +14,6 @@ def load_json(path, fallback=None):
             return json.load(f)
     except Exception:
         return fallback or {}
-
-
-def kpi_badge(kpi):
-    if not kpi or "value" not in kpi:
-        return ""
-    val = kpi["value"]
-    unit = kpi.get("unit", "")
-    delt = kpi.get("delta")
-    win = kpi.get("window", "")
-    if delt is None:
-        delta_str = ""
-    else:
-        arrow = "🔺" if delt > 0 else ("🔻" if delt < 0 else "➡️")
-        delta_str = f" {arrow} {delt:+}"
-    win_str = f" <span style='opacity:.65'>({win})</span>" if win else ""
-    return f"<b>{val}</b> {unit}{delta_str}{win_str}"
-
-
-@st.cache_data(ttl=60)
-def fetch_kpis(backend_url: str):
-    r = requests.get(f"{backend_url.rstrip('/')}/api/kpis", timeout=20)
-    r.raise_for_status()
-    return r.json()  # { kpis: {...}, topVessels: [...] }
-
 
 # ---------- sidebar ----------
 st.sidebar.title("⚙️ Config")
@@ -97,12 +72,12 @@ with left:
             "type": "report",
             "embedUrl": embed_url,
             "accessToken": access_token,
-            "settings": {"panes": {"filters": {"visible": False}}},
+            "settings": {"panes": {"filters": {"visible": True, "expanded": False}}},
         }
         config_json = json.dumps(safe_config)
 
         embed_html = f"""
-        <div id="reportContainer" style="height:600px;border:1px solid #e5e7eb;border-radius:12px"></div>
+        <div id="reportContainer" style="height:600px;border:1px solid #000000;border-radius:12px"></div>
         <script src="https://cdn.jsdelivr.net/npm/powerbi-client/dist/powerbi.min.js"></script>
         <script>
         (function(){{
@@ -112,8 +87,8 @@ with left:
 
             const el = document.getElementById('reportContainer');
             if (window.powerbi) {{
-            try {{ window.powerbi.reset(el); }} catch (e) {{}}
-            window.powerbi.embed(el, config);
+                try {{ window.powerbi.reset(el); }} catch (e) {{}}
+                window.powerbi.embed(el, config);
             }}
         }})();
         </script>
@@ -123,36 +98,36 @@ with left:
     except Exception as e:
         st.info(f"Power BI embed not available: {e}")
 
-    with right:
-        st.subheader("Conversational Insights")
-        st.caption(
-            "Try: *What changed this week?*, *Why did arrival accuracy drop?*, *Suggest next steps aligned to PSA strategy.*"
-        )
+with right:
+    st.subheader("Conversational Insights")
+    st.caption(
+        "Try: *What changed this week?*, *Suggest next steps aligned to PSA strategy.*"
+    )
 
-        # Ensure state exists
-        if "messages" not in st.session_state:
-            st.session_state.messages = []
+    # Ensure state exists
+    if "messages" not in st.session_state:
+        st.session_state.messages = []
 
-        # Input
-        user_q = st.chat_input("Ask about the dashboard…")
+    # Input
+    user_q = st.chat_input("Ask about the dashboard…")
 
-        if user_q:
-            st.session_state.messages.append({"role": "user", "content": user_q})
-            try:
-                r = requests.post(f"{backend_url.rstrip('/')}/api/ask",
-                                json={"question": user_q}, timeout=60)
-                # don't raise_for_status; show diagnostics if backend returns them
-                data = r.json() if r.headers.get("content-type","").startswith("application/json") else {}
-                answer = data.get("answer", r.text or "No answer.")
-            except Exception as e:
-                answer = f"Backend error: {e}"
-            st.session_state.messages.append({"role": "assistant", "content": answer})
-            
-        # Render chat (oldest → newest)
-        for m in reversed(st.session_state.messages):
-            with st.chat_message(m["role"]):
-                st.markdown(m["content"])
+    if user_q:
+        st.session_state.messages.append({"role": "user", "content": user_q})
+        try:
+            r = requests.post(f"{backend_url.rstrip('/')}/api/ask",
+                            json={"question": user_q}, timeout=60)
+            # don't raise_for_status; show diagnostics if backend returns them
+            data = r.json() if r.headers.get("content-type","").startswith("application/json") else {}
+            answer = data.get("answer", r.text or "No answer.")
+        except Exception as e:
+            answer = f"Backend error: {e}"
+        st.session_state.messages.append({"role": "assistant", "content": answer})
+        
+    # Render chat (oldest → newest)
+    for m in reversed(st.session_state.messages):
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
 
-        st.button(
-            "Clear chat", on_click=lambda: st.session_state.update({"messages": []})
-        )
+    st.button(
+        "Clear chat", on_click=lambda: st.session_state.update({"messages": []})
+    )
