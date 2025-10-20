@@ -5,7 +5,7 @@
 
 const getAccessToken = async function () {
     // Create a config variable that store credentials from config.json
-    const config = require(__dirname + "/../config/config.json");
+    const config = require(__dirname + "/../config/config.js");
 
     // Use MSAL.js for authentication
     const msal = require("@azure/msal-node");
